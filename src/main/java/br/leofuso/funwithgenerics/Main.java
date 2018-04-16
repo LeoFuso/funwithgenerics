@@ -46,15 +46,16 @@ public class Main {
 
         System.out.println("\nMethods: \n");
 
-        List<Object> objectList = new ArrayList<>();
+        ArrayList<Tag> tags = new ArrayList<>();
 
         for (Method m : c.getDeclaredMethods()) {
 
             System.out.format("Field name: %s%n", m.getName());
             System.out.format("Return Type: %s%n", m.getReturnType());
             System.out.format("Return GenericType: %s%n", m.getGenericReturnType());
-            if(m.getGenericReturnType().toString().equals("java.util.List<br.leofuso.funwithgenerics.model.Tag>"))
-                objectList.addAll(Arrays.asList(m.invoke(books.get(0), null)));
+            if(m.getGenericReturnType().toString().equals("java.util.List<br.leofuso.funwithgenerics.model.Tag>")) {
+                tags = (ArrayList<Tag>) m.invoke(books.get(0), null);
+            }
 
             System.out.format("Get Class: %s%n", m.getGenericReturnType().getClass().getSimpleName());
 
@@ -63,7 +64,7 @@ public class Main {
         }
 
         //objectList.forEach(System.out::println);
-        ArrayList<Tag> tags = (ArrayList<Tag>) objectList.get(0);
+        System.out.println("Tags from Book Object: \n");
         tags.forEach(System.out::println);
 
 
