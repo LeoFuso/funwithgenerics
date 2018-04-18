@@ -5,10 +5,7 @@ import br.leofuso.funwithgenerics.model.Book;
 import br.leofuso.funwithgenerics.model.Tag;
 
 import java.lang.reflect.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 public class Main {
 
@@ -46,28 +43,61 @@ public class Main {
 
         System.out.println("\nMethods: \n");
 
-        ArrayList<Tag> tags = new ArrayList<>();
 
         for (Method m : c.getDeclaredMethods()) {
 
             System.out.format("Field name: %s%n", m.getName());
             System.out.format("Return Type: %s%n", m.getReturnType());
             System.out.format("Return GenericType: %s%n", m.getGenericReturnType());
-            if(m.getGenericReturnType().toString().equals("java.util.List<br.leofuso.funwithgenerics.model.Tag>")) {
-                tags = (ArrayList<Tag>) m.invoke(books.get(0), null);
-            }
-
             System.out.format("Get Class: %s%n", m.getGenericReturnType().getClass().getSimpleName());
 
             System.out.println("\n");
 
         }
+        List<Tag> tags;
+        List<Author> authors;
 
         //objectList.forEach(System.out::println);
         System.out.println("Tags from Book Object: \n");
+        tags = (List<Tag>) getCollection(tagClass, books.get(0));
+        authors = (List<Author>) getCollection(authorClass, books.get(0));
         tags.forEach(System.out::println);
+        authors.forEach(System.out::println);
 
 
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T, P> Collection<T> getCollection(Class<T> entityClass, P parentEntity) {
+
+        Collection<Method> methods;
+        Method toInvoke;
+
+        methods = Arrays.asList(parentEntity.getClass().getDeclaredMethods());
+
+        toInvoke = methods.stream()
+                .filter(method -> {
+
+                    Type returnType;
+                    ParameterizedType parameterizedType;
+
+                    returnType = method.getGenericReturnType();
+
+                    if (!(returnType instanceof ParameterizedType))
+                        return false;
+
+                    parameterizedType = (ParameterizedType) returnType;
+                    return parameterizedType.getActualTypeArguments()[0].equals(entityClass);
+                })
+                .filter(method -> method.getName().equals("get" + entityClass.getSimpleName() + "s"))
+                .collect(CollectionUtils.singletonCollector());
+
+        try {
+            return (Collection<T>) toInvoke.invoke(parentEntity);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     private static void setup() {
